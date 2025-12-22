@@ -33,5 +33,9 @@ portpicker = { workspace = true }
 reqwest = { workspace = true }
 tempfile = { workspace = true }
 
+# CLI is a placeholder - these deps will be used when migrated from src/
+[package.metadata.cargo-machete]
+ignored = ["axum", "blake3", "chrono", "clap", "env_logger", "hashcards-core", "log", "maud", "open", "pulldown-cmark", "rusqlite", "serde", "serde_json", "tokio", "toml", "walkdir"]
+
 [lints]
 workspace = true

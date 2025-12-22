@@ -19,13 +19,13 @@ use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 use web_sys::console;
 
+use hashcards_core::fsrs::Grade;
+use hashcards_core::parser::parse_decks;
+use hashcards_core::rng::{TinyRng, shuffle};
 use hashcards_core::types::card::Card;
 use hashcards_core::types::date::Date;
 use hashcards_core::types::performance::{Performance, update_performance};
 use hashcards_core::types::timestamp::Timestamp;
-use hashcards_core::fsrs::Grade;
-use hashcards_core::parser::parse_decks;
-use hashcards_core::rng::{TinyRng, shuffle};
 
 mod storage;
 
@@ -85,7 +85,9 @@ impl HashcardsApp {
         let files: Vec<(String, String)> = serde_json::from_str(files_json)
             .map_err(|e| JsValue::from_str(&format!("Failed to parse files JSON: {}", e)))?;
 
-        let files_iter = files.iter().map(|(name, content)| (name.as_str(), content.as_str()));
+        let files_iter = files
+            .iter()
+            .map(|(name, content)| (name.as_str(), content.as_str()));
 
         self.cards = parse_decks(files_iter)
             .map_err(|e| JsValue::from_str(&format!("Failed to parse cards: {}", e)))?;
@@ -99,7 +101,8 @@ impl HashcardsApp {
     /// Register a media file URL mapping.
     #[wasm_bindgen]
     pub fn register_media(&mut self, original_path: &str, blob_url: &str) {
-        self.media_urls.insert(original_path.to_string(), blob_url.to_string());
+        self.media_urls
+            .insert(original_path.to_string(), blob_url.to_string());
     }
 
     /// Set LaTeX macros from a JSON object.
@@ -127,12 +130,20 @@ impl HashcardsApp {
     /// Start a new drilling session.
     /// Returns the number of cards due today.
     #[wasm_bindgen]
-    pub fn start_session(&mut self, today_str: &str, do_shuffle: bool, card_limit: Option<usize>, new_card_limit: Option<usize>) -> Result<usize, JsValue> {
+    pub fn start_session(
+        &mut self,
+        today_str: &str,
+        do_shuffle: bool,
+        card_limit: Option<usize>,
+        new_card_limit: Option<usize>,
+    ) -> Result<usize, JsValue> {
         let today = Date::try_from(today_str.to_string())
             .map_err(|e| JsValue::from_str(&format!("Invalid date: {}", e)))?;
 
         // Find cards due today
-        let mut due_cards: Vec<Card> = self.cards.iter()
+        let mut due_cards: Vec<Card> = self
+            .cards
+            .iter()
             .filter(|card| {
                 let hash = card.hash().to_hex();
                 match self.performance.get(&hash) {
@@ -146,7 +157,7 @@ impl HashcardsApp {
         // Apply new card limit
         if let Some(limit) = new_card_limit {
             let mut new_count = 0;
-            due_cards = due_cards.into_iter().filter(|card| {
+            due_cards.retain(|card| {
                 let hash = card.hash().to_hex();
                 let is_new = matches!(self.performance.get(&hash), None | Some(Performance::New));
                 if is_new {
@@ -159,7 +170,7 @@ impl HashcardsApp {
                 } else {
                     true
                 }
-            }).collect();
+            });
         }
 
         // Apply card limit
@@ -206,7 +217,8 @@ impl HashcardsApp {
         if self.total_session_cards == 0 {
             1.0
         } else {
-            (self.total_session_cards - self.session_cards.len()) as f64 / self.total_session_cards as f64
+            (self.total_session_cards - self.session_cards.len()) as f64
+                / self.total_session_cards as f64
         }
     }
 
@@ -225,11 +237,16 @@ impl HashcardsApp {
     /// Get the current card's front HTML.
     #[wasm_bindgen]
     pub fn current_front_html(&self) -> Result<String, JsValue> {
-        let card = self.session_cards.last()
+        let card = self
+            .session_cards
+            .last()
             .ok_or_else(|| JsValue::from_str("No cards in session"))?;
 
         let url_rewriter = |url: &str| -> String {
-            self.media_urls.get(url).cloned().unwrap_or_else(|| url.to_string())
+            self.media_urls
+                .get(url)
+                .cloned()
+                .unwrap_or_else(|| url.to_string())
         };
 
         card.html_front(Some(&url_rewriter))
@@ -239,11 +256,16 @@ impl HashcardsApp {
     /// Get the current card's back HTML.
     #[wasm_bindgen]
     pub fn current_back_html(&self) -> Result<String, JsValue> {
-        let card = self.session_cards.last()
+        let card = self
+            .session_cards
+            .last()
             .ok_or_else(|| JsValue::from_str("No cards in session"))?;
 
         let url_rewriter = |url: &str| -> String {
-            self.media_urls.get(url).cloned().unwrap_or_else(|| url.to_string())
+            self.media_urls
+                .get(url)
+                .cloned()
+                .unwrap_or_else(|| url.to_string())
         };
 
         card.html_back(Some(&url_rewriter))
@@ -271,14 +293,21 @@ impl HashcardsApp {
         let now = Timestamp::try_from(now_str.to_string())
             .map_err(|e| JsValue::from_str(&format!("Invalid timestamp: {}", e)))?;
 
-        let card = self.session_cards.pop()
+        let card = self
+            .session_cards
+            .pop()
             .ok_or_else(|| JsValue::from_str("No cards in session"))?;
 
         let hash = card.hash().to_hex();
-        let current_perf = self.performance.get(&hash).copied().unwrap_or(Performance::New);
+        let current_perf = self
+            .performance
+            .get(&hash)
+            .copied()
+            .unwrap_or(Performance::New);
         let new_perf = update_performance(current_perf, grade, now);
 
-        self.performance.insert(hash.clone(), Performance::Reviewed(new_perf));
+        self.performance
+            .insert(hash.clone(), Performance::Reviewed(new_perf));
         self.reviews_this_session += 1;
 
         // Re-add card to session if forgot or hard
@@ -303,7 +332,8 @@ impl HashcardsApp {
     /// Get the number of new cards.
     #[wasm_bindgen]
     pub fn new_cards_count(&self) -> usize {
-        self.cards.iter()
+        self.cards
+            .iter()
             .filter(|card| {
                 let hash = card.hash().to_hex();
                 matches!(self.performance.get(&hash), None | Some(Performance::New))
@@ -314,9 +344,7 @@ impl HashcardsApp {
     /// Get list of deck names.
     #[wasm_bindgen]
     pub fn deck_names(&self) -> String {
-        let mut names: Vec<&str> = self.cards.iter()
-            .map(|c| c.deck_name().as_str())
-            .collect();
+        let mut names: Vec<&str> = self.cards.iter().map(|c| c.deck_name().as_str()).collect();
         names.sort();
         names.dedup();
         serde_json::to_string(&names).unwrap_or_else(|_| "[]".to_string())
@@ -375,8 +403,10 @@ pub fn now_timestamp() -> String {
     let minutes = date.get_minutes();
     let seconds = date.get_seconds();
     let millis = date.get_milliseconds();
-    format!("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}",
-        year, month, day, hours, minutes, seconds, millis)
+    format!(
+        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}",
+        year, month, day, hours, minutes, seconds, millis
+    )
 }
 
 /// Get today's date as a string (YYYY-MM-DD).

@@ -79,7 +79,10 @@ mod tests {
     #[test]
     fn test_deserialize() -> Fallible<()> {
         let date: Date = serde_json::from_str("\"2024-01-02\"")?;
-        assert_eq!(date, Date::new(NaiveDate::from_ymd_opt(2024, 1, 2).unwrap()));
+        assert_eq!(
+            date,
+            Date::new(NaiveDate::from_ymd_opt(2024, 1, 2).unwrap())
+        );
         Ok(())
     }
 }

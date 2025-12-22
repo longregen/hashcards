@@ -12,7 +12,6 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 hashcards-core = { path = "../hashcards-core" }
 wasm-bindgen = { workspace = true }
-wasm-bindgen-futures = { workspace = true }
 js-sys = { workspace = true }
 web-sys = { workspace = true, features = [
     "console",
@@ -35,10 +34,7 @@ web-sys = { workspace = true, features = [
     "DataTransfer",
 ] }
 console_error_panic_hook = { workspace = true }
-getrandom = { workspace = true }
-serde = { workspace = true }
 serde_json = { workspace = true }
-chrono = { workspace = true }
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false

@@ -106,9 +106,7 @@ pub fn parse_deck_content(
 ///
 /// # Arguments
 /// * `files` - Iterator of (filename, content) pairs
-pub fn parse_decks<'a>(
-    files: impl Iterator<Item = (&'a str, &'a str)>,
-) -> Fallible<Vec<Card>> {
+pub fn parse_decks<'a>(files: impl Iterator<Item = (&'a str, &'a str)>) -> Fallible<Vec<Card>> {
     let mut all_cards = Vec::new();
 
     for (filename, text) in files {
@@ -117,10 +115,7 @@ pub fn parse_decks<'a>(
 
         let deck_name: DeckName = custom_name.unwrap_or_else(|| {
             // Use filename without extension as deck name
-            filename
-                .strip_suffix(".md")
-                .unwrap_or(filename)
-                .to_string()
+            filename.strip_suffix(".md").unwrap_or(filename).to_string()
         });
 
         let parser = Parser::new(deck_name, filename.to_string());
