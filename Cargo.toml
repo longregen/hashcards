@@ -1,31 +1,42 @@
-[package]
-name = "hashcards"
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
 version = "0.2.1"
 edition = "2024"
-description = "A plain text-based spaced repetition system."
-homepage = "https://github.com/eudoxia0/hashcards"
-repository = "https://github.com/eudoxia0/hashcards"
 license = "Apache-2.0"
-categories = ["command-line-utilities"]
+repository = "https://github.com/eudoxia0/hashcards"
 
-[dependencies]
-axum = "0.8.4"
+[workspace.dependencies]
+# Core dependencies (WASM-compatible)
 blake3 = "1.8.2"
-chrono = "0.4.42"
+chrono = { version = "0.4.42", default-features = false }
+pulldown-cmark = "0.13.0"
+serde = { version = "1.0.224", features = ["derive"] }
+serde_json = "1.0.145"
+toml = "0.9.8"
+
+# CLI-only dependencies
+axum = "0.8.4"
 clap = { version = "4.5.53", features = ["derive"] }
 env_logger = "0.11.8"
 log = "0.4.28"
 maud = "0.27.0"
 open = "5.3.2"
-pulldown-cmark = "0.13.0"
 rusqlite = { version = "0.38.0", features = ["bundled"] }
-serde = { version = "1.0.224", features = ["derive"] }
-serde_json = "1.0.145"
 tokio = { version = "1.48.0", features = ["rt-multi-thread", "fs", "signal"] }
-toml = "0.9.8"
 walkdir = "2"
 
-[dev-dependencies]
+# WASM dependencies
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+web-sys = "0.3"
+console_error_panic_hook = "0.1"
+getrandom = { version = "0.2", features = ["js"] }
+
+# Dev dependencies
 portpicker = "0.1.1"
 reqwest = "0.12.25"
 tempfile = "3.23.0"
@@ -36,8 +47,6 @@ lto = true
 codegen-units = 1
 panic = "abort"
 
-[lints.clippy]
-# Allow using `if a { if b { ... } }` instead of `if a && b { ... }`.
+[workspace.lints.clippy]
 collapsible_if = "allow"
-# Allow using `match` instead of `if let`.
 single_match = "allow"
