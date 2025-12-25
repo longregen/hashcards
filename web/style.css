@@ -25,7 +25,10 @@ body {
     background: #f8f8f8;
 }
 
-/* Screen management */
+/* ============================================================================
+   Screen Management
+   ============================================================================ */
+
 .screen {
     position: absolute;
     top: 0;
@@ -34,7 +37,14 @@ body {
     height: 100%;
 }
 
-/* Loading Screen */
+.screen[style*="display: none"] {
+    display: none !important;
+}
+
+/* ============================================================================
+   Loading Screen
+   ============================================================================ */
+
 #loading-screen {
     display: flex;
     justify-content: center;
@@ -71,7 +81,469 @@ body {
     to { transform: rotate(360deg); }
 }
 
-/* Setup Screen */
+/* ============================================================================
+   Home Screen
+   ============================================================================ */
+
+#home-screen {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background: #f8f8f8;
+    overflow-y: auto;
+    padding: 48px 24px;
+}
+
+.home-content {
+    max-width: 700px;
+    width: 100%;
+}
+
+.home-header {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.home-header h1 {
+    font-size: 48px;
+    margin-bottom: 8px;
+}
+
+.home-header .subtitle {
+    font-size: 18px;
+    color: #666;
+}
+
+/* Collections Section */
+.collections-section {
+    margin-bottom: 48px;
+}
+
+.collections-section h2 {
+    font-size: 20px;
+    font-family: system-ui, sans-serif;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+.collections-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.collection-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px 20px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.collection-item:hover {
+    border-color: #4CAF50;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.collection-info {
+    cursor: pointer;
+    flex: 1;
+}
+
+.collection-name {
+    display: block;
+    font-size: 18px;
+    font-family: system-ui, sans-serif;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.collection-meta {
+    font-size: 14px;
+    color: #666;
+    font-family: system-ui, sans-serif;
+}
+
+.empty-message {
+    text-align: center;
+    color: #999;
+    padding: 24px;
+    font-style: italic;
+}
+
+/* Sources Section */
+.sources-section {
+    margin-bottom: 48px;
+}
+
+.sources-section h2 {
+    font-size: 20px;
+    font-family: system-ui, sans-serif;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+.source-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.source-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.source-btn:hover {
+    border-color: #4CAF50;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.source-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.source-title {
+    font-size: 16px;
+    font-family: system-ui, sans-serif;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.source-desc {
+    font-size: 13px;
+    color: #666;
+    font-family: system-ui, sans-serif;
+    text-align: center;
+}
+
+/* Data Section */
+.data-section {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding-top: 24px;
+    border-top: 1px solid #eee;
+}
+
+/* ============================================================================
+   Modals
+   ============================================================================ */
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-content h2 {
+    font-size: 24px;
+    margin-bottom: 16px;
+    font-family: system-ui, sans-serif;
+}
+
+.modal-content p {
+    margin-bottom: 16px;
+    color: #666;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 16px;
+    font-family: system-ui, sans-serif;
+    font-size: 14px;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="password"],
+.modal-content select,
+.modal-content textarea {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: system-ui, sans-serif;
+}
+
+.modal-content textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.modal-content .hint {
+    font-size: 13px;
+    color: #888;
+    margin-top: -8px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+/* ============================================================================
+   Editor Screen
+   ============================================================================ */
+
+#editor-screen {
+    display: flex;
+    background: #f8f8f8;
+}
+
+.editor-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.editor-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: white;
+    border-bottom: 1px solid #ddd;
+    gap: 16px;
+}
+
+.collection-name-input {
+    flex: 1;
+    font-size: 20px;
+    font-family: system-ui, sans-serif;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    padding: 8px;
+}
+
+.collection-name-input:focus {
+    outline: none;
+    background: #f8f8f8;
+    border-radius: 4px;
+}
+
+.editor-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.editor-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Deck Sidebar */
+.deck-sidebar {
+    width: 200px;
+    background: white;
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+}
+
+.deck-sidebar h3 {
+    font-size: 14px;
+    font-family: system-ui, sans-serif;
+    color: #666;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.deck-list {
+    list-style: none;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.deck-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 4px;
+}
+
+.deck-item:hover {
+    background: #f0f0f0;
+}
+
+.deck-item.active {
+    background: #e8f5e9;
+}
+
+.deck-item-name {
+    font-size: 14px;
+    font-family: system-ui, sans-serif;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.deck-delete-btn {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.deck-item:hover .deck-delete-btn {
+    opacity: 1;
+}
+
+.deck-delete-btn:hover {
+    color: #e53935;
+}
+
+/* Editor Main Area */
+.editor-main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.editor-pane,
+.preview-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.editor-pane {
+    border-right: 1px solid #ddd;
+}
+
+.pane-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+    font-size: 12px;
+    font-family: system-ui, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+}
+
+.deck-name-display {
+    font-weight: 600;
+    color: #333;
+    text-transform: none;
+}
+
+.card-count {
+    color: #4CAF50;
+    font-weight: 600;
+}
+
+#markdown-editor {
+    flex: 1;
+    padding: 16px;
+    border: none;
+    resize: none;
+    font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    background: white;
+}
+
+#markdown-editor:focus {
+    outline: none;
+}
+
+.preview-content {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    background: white;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.preview-content h1,
+.preview-content h2,
+.preview-content h3 {
+    margin-top: 16px;
+    margin-bottom: 8px;
+}
+
+.preview-content h1 { font-size: 24px; }
+.preview-content h2 { font-size: 20px; }
+.preview-content h3 { font-size: 16px; }
+
+.qa-label {
+    font-family: system-ui, sans-serif;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.qa-label.q {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.qa-label.a {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.cloze-preview {
+    background: #fff3e0;
+    color: #e65100;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+/* ============================================================================
+   Setup Screen
+   ============================================================================ */
+
 #setup-screen {
     display: flex;
     justify-content: center;
@@ -81,78 +553,63 @@ body {
 }
 
 .setup-content {
-    max-width: 600px;
+    max-width: 500px;
     width: 90%;
     padding: 48px 24px;
     text-align: center;
+    position: relative;
+}
+
+.setup-content .back-btn {
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .setup-content h1 {
-    font-size: 48px;
+    font-size: 36px;
     margin-bottom: 8px;
 }
 
-.setup-content .subtitle {
-    font-size: 18px;
+.collection-source {
+    font-size: 14px;
     color: #666;
-    margin-bottom: 48px;
-}
-
-.upload-area {
-    border: 3px dashed #ccc;
-    border-radius: 12px;
-    padding: 48px 24px;
+    font-family: system-ui, sans-serif;
     margin-bottom: 32px;
-    background: white;
-    transition: border-color 0.2s, background-color 0.2s;
 }
 
-.upload-area.drag-over {
-    border-color: #4CAF50;
-    background: #f0fff0;
-}
-
-.upload-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-}
-
-.upload-area p {
-    font-size: 18px;
-    margin-bottom: 8px;
-}
-
-.upload-area .or {
-    color: #999;
-    margin: 16px 0;
-}
-
-#collection-info {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 24px;
+.collection-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
     margin-bottom: 32px;
-    text-align: left;
 }
 
-#collection-info h2 {
-    font-size: 24px;
-    margin-bottom: 16px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 8px;
+.stat {
+    text-align: center;
 }
 
-#collection-info p {
-    font-size: 16px;
-    margin-bottom: 8px;
+.stat-value {
+    display: block;
+    font-size: 36px;
+    font-family: system-ui, sans-serif;
+    font-weight: 600;
+    color: #333;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #666;
+    font-family: system-ui, sans-serif;
 }
 
 .session-options {
     margin: 24px 0;
     padding: 16px;
-    background: #f8f8f8;
+    background: white;
+    border: 1px solid #ddd;
     border-radius: 8px;
+    text-align: left;
 }
 
 .session-options label {
@@ -174,20 +631,23 @@ body {
     margin-right: 8px;
 }
 
-.data-management {
+.setup-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+
+.danger-zone {
     margin-top: 48px;
     padding-top: 24px;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid #eee;
 }
 
-.data-management h3 {
-    font-size: 16px;
-    color: #666;
-    margin-bottom: 16px;
-    font-family: system-ui, sans-serif;
-}
+/* ============================================================================
+   Buttons
+   ============================================================================ */
 
-/* Buttons */
 .btn {
     -webkit-appearance: none;
     appearance: none;
@@ -220,9 +680,24 @@ body {
     background: #f0f0f0;
 }
 
+.btn.danger {
+    background: white;
+    color: #e53935;
+    border-color: #e53935;
+}
+
+.btn.danger:hover {
+    background: #ffebee;
+}
+
 .btn.large {
     padding: 16px 32px;
     font-size: 18px;
+}
+
+.btn.small {
+    padding: 8px 16px;
+    font-size: 14px;
 }
 
 .btn:disabled {
@@ -260,7 +735,10 @@ body {
     color: #1565c0;
 }
 
-/* Drill Screen */
+/* ============================================================================
+   Drill Screen
+   ============================================================================ */
+
 .root {
     display: flex;
     flex-direction: column;
@@ -436,7 +914,10 @@ body {
     max-width: 600px;
 }
 
-/* Finished Screen */
+/* ============================================================================
+   Finished Screen
+   ============================================================================ */
+
 #finished-screen {
     display: flex;
     justify-content: center;
@@ -463,8 +944,37 @@ body {
     margin: 8px;
 }
 
-/* Mobile */
+/* ============================================================================
+   Mobile Responsive
+   ============================================================================ */
+
 @media (max-width: 768px) {
+    /* Home */
+    .source-options {
+        grid-template-columns: 1fr;
+    }
+
+    /* Editor */
+    .deck-sidebar {
+        display: none;
+    }
+
+    .editor-main {
+        flex-direction: column;
+    }
+
+    .editor-pane,
+    .preview-pane {
+        flex: none;
+        height: 50%;
+    }
+
+    .editor-pane {
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+    }
+
+    /* Drill */
     .card {
         width: 100%;
         height: 100%;
@@ -488,16 +998,18 @@ body {
         margin: 4px 0;
     }
 
-    .setup-content h1 {
-        font-size: 36px;
+    /* Setup */
+    .collection-stats {
+        flex-wrap: wrap;
     }
 
+    .setup-content h1 {
+        font-size: 28px;
+    }
+
+    /* General */
+    .home-header h1,
     .finished h1 {
         font-size: 36px;
     }
-}
-
-/* Hide screens by default */
-.screen[style*="display: none"] {
-    display: none !important;
 }

@@ -21,48 +21,217 @@
             </div>
         </div>
 
-        <!-- Setup Screen -->
+        <!-- Home Screen -->
+        <div id="home-screen" class="screen" style="display: none;">
+            <div class="home-content">
+                <header class="home-header">
+                    <h1>hashcards</h1>
+                    <p class="subtitle">A plain-text spaced repetition system</p>
+                </header>
+
+                <!-- Collections List -->
+                <section class="collections-section">
+                    <h2>Your Collections</h2>
+                    <div id="collections-list" class="collections-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    <p id="no-collections" class="empty-message">No collections yet. Create one or import from a source below.</p>
+                </section>
+
+                <!-- Add Collection Options -->
+                <section class="sources-section">
+                    <h2>Add Collection</h2>
+                    <div class="source-options">
+                        <button id="create-collection-btn" class="source-btn">
+                            <span class="source-icon">📝</span>
+                            <span class="source-title">Create New</span>
+                            <span class="source-desc">Write cards in browser</span>
+                        </button>
+                        <button id="import-url-btn" class="source-btn">
+                            <span class="source-icon">🔗</span>
+                            <span class="source-title">Import from URL</span>
+                            <span class="source-desc">Load markdown from any URL</span>
+                        </button>
+                        <button id="connect-git-btn" class="source-btn">
+                            <span class="source-icon">📂</span>
+                            <span class="source-title">Connect Git Repo</span>
+                            <span class="source-desc">GitHub, Forgejo, Gitea, etc.</span>
+                        </button>
+                        <button id="upload-folder-btn" class="source-btn">
+                            <span class="source-icon">📁</span>
+                            <span class="source-title">Upload Files</span>
+                            <span class="source-desc">Import from your device</span>
+                        </button>
+                        <input type="file" id="folder-input" webkitdirectory directory multiple hidden>
+                    </div>
+                </section>
+
+                <!-- Data Management -->
+                <section class="data-section">
+                    <button id="export-all-btn" class="btn secondary small">Export All Data</button>
+                    <button id="import-data-btn" class="btn secondary small">Import Data</button>
+                    <input type="file" id="import-data-input" accept=".json" hidden>
+                </section>
+            </div>
+        </div>
+
+        <!-- URL Import Modal -->
+        <div id="url-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2>Import from URL</h2>
+                <p>Enter one or more URLs to markdown files (one per line):</p>
+                <textarea id="url-input" placeholder="https://raw.githubusercontent.com/user/repo/main/cards.md&#10;https://forgejo.example.com/user/repo/raw/main/vocab.md"></textarea>
+                <label>
+                    Collection name:
+                    <input type="text" id="url-collection-name" placeholder="My Collection">
+                </label>
+                <div class="modal-actions">
+                    <button id="url-cancel-btn" class="btn secondary">Cancel</button>
+                    <button id="url-import-btn" class="btn primary">Import</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Git Connect Modal -->
+        <div id="git-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2>Connect Git Repository</h2>
+                <label>
+                    Provider:
+                    <select id="git-provider">
+                        <option value="github">GitHub</option>
+                        <option value="gitlab">GitLab</option>
+                        <option value="gitea">Forgejo / Gitea</option>
+                        <option value="codeberg">Codeberg</option>
+                    </select>
+                </label>
+                <label id="git-instance-label" style="display: none;">
+                    Instance URL:
+                    <input type="text" id="git-instance" placeholder="https://forgejo.example.com">
+                </label>
+                <label>
+                    Repository:
+                    <input type="text" id="git-repo" placeholder="owner/repo">
+                </label>
+                <label>
+                    Branch:
+                    <input type="text" id="git-branch" placeholder="main" value="main">
+                </label>
+                <label>
+                    Path (optional):
+                    <input type="text" id="git-path" placeholder="cards/">
+                </label>
+                <label>
+                    Personal Access Token:
+                    <input type="password" id="git-token" placeholder="ghp_xxxx or glpat-xxxx">
+                </label>
+                <p class="hint">Token is stored locally and only used to fetch your cards.</p>
+                <div class="modal-actions">
+                    <button id="git-cancel-btn" class="btn secondary">Cancel</button>
+                    <button id="git-connect-btn" class="btn primary">Connect</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Editor Screen -->
+        <div id="editor-screen" class="screen" style="display: none;">
+            <div class="editor-container">
+                <header class="editor-header">
+                    <button id="editor-back-btn" class="btn secondary">← Back</button>
+                    <input type="text" id="collection-name-input" class="collection-name-input" placeholder="Collection Name">
+                    <div class="editor-actions">
+                        <button id="save-collection-btn" class="btn primary">Save</button>
+                    </div>
+                </header>
+                <div class="editor-body">
+                    <aside class="deck-sidebar">
+                        <h3>Decks</h3>
+                        <ul id="deck-list" class="deck-list">
+                            <!-- Populated by JavaScript -->
+                        </ul>
+                        <button id="add-deck-btn" class="btn secondary small">+ Add Deck</button>
+                    </aside>
+                    <main class="editor-main">
+                        <div class="editor-pane">
+                            <div class="pane-header">
+                                <span>Markdown</span>
+                                <span id="current-deck-name" class="deck-name-display"></span>
+                            </div>
+                            <textarea id="markdown-editor" placeholder="# My Deck
+
+Write your flashcards here...
+
+Q: What is the capital of France?
+A: Paris
+
+Q: What is 2 + 2?
+A: 4
+
+---
+
+You can also use cloze deletions:
+The {{capital}} of France is {{Paris}}.
+"></textarea>
+                        </div>
+                        <div class="preview-pane">
+                            <div class="pane-header">
+                                <span>Preview</span>
+                                <span id="card-count-preview" class="card-count"></span>
+                            </div>
+                            <div id="markdown-preview" class="preview-content">
+                                <!-- Rendered preview -->
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </div>
+        </div>
+
+        <!-- Setup Screen (before drilling) -->
         <div id="setup-screen" class="screen" style="display: none;">
             <div class="setup-content">
-                <h1>hashcards</h1>
-                <p class="subtitle">A plain-text spaced repetition system</p>
+                <button id="setup-back-btn" class="btn secondary back-btn">← Back</button>
+                <h1 id="setup-collection-name">Collection</h1>
+                <p class="collection-source" id="setup-source"></p>
 
-                <div class="upload-area" id="upload-area">
-                    <div class="upload-icon">📁</div>
-                    <p>Drop your collection folder here</p>
-                    <p class="or">or</p>
-                    <input type="file" id="file-input" webkitdirectory directory multiple hidden>
-                    <button id="select-folder-btn" class="btn primary">Select Folder</button>
-                </div>
-
-                <div id="collection-info" style="display: none;">
-                    <h2>Collection Loaded</h2>
-                    <p><strong id="card-count">0</strong> cards in <strong id="deck-count">0</strong> decks</p>
-                    <p><strong id="due-count">0</strong> cards due today</p>
-
-                    <div class="session-options">
-                        <label>
-                            <input type="checkbox" id="shuffle-cards" checked>
-                            Shuffle cards
-                        </label>
-                        <label>
-                            Card limit:
-                            <input type="number" id="card-limit" min="1" placeholder="No limit">
-                        </label>
-                        <label>
-                            New card limit:
-                            <input type="number" id="new-card-limit" min="0" placeholder="No limit">
-                        </label>
+                <div class="collection-stats">
+                    <div class="stat">
+                        <span class="stat-value" id="total-cards">0</span>
+                        <span class="stat-label">Total Cards</span>
                     </div>
-
-                    <button id="start-session-btn" class="btn primary large">Start Drilling</button>
+                    <div class="stat">
+                        <span class="stat-value" id="deck-count">0</span>
+                        <span class="stat-label">Decks</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="due-today">0</span>
+                        <span class="stat-label">Due Today</span>
+                    </div>
                 </div>
 
-                <div class="data-management">
-                    <h3>Data Management</h3>
-                    <button id="export-btn" class="btn secondary">Export Progress</button>
-                    <input type="file" id="import-input" accept=".json" hidden>
-                    <button id="import-btn" class="btn secondary">Import Progress</button>
+                <div class="session-options">
+                    <label>
+                        <input type="checkbox" id="shuffle-cards" checked>
+                        Shuffle cards
+                    </label>
+                    <label>
+                        Card limit:
+                        <input type="number" id="card-limit" min="1" placeholder="No limit">
+                    </label>
+                    <label>
+                        New card limit:
+                        <input type="number" id="new-card-limit" min="0" placeholder="No limit">
+                    </label>
+                </div>
+
+                <div class="setup-actions">
+                    <button id="start-session-btn" class="btn primary large">Start Drilling</button>
+                    <button id="edit-collection-btn" class="btn secondary">Edit Collection</button>
+                    <button id="sync-collection-btn" class="btn secondary" style="display: none;">Sync from Remote</button>
+                </div>
+
+                <div class="danger-zone">
+                    <button id="delete-collection-btn" class="btn danger small">Delete Collection</button>
                 </div>
             </div>
         </div>
@@ -113,7 +282,7 @@
                     <p>You reviewed <strong id="reviewed-count">0</strong> cards.</p>
                 </div>
                 <button id="new-session-btn" class="btn primary large">Start New Session</button>
-                <button id="back-to-setup-btn" class="btn secondary">Back to Setup</button>
+                <button id="back-to-home-btn" class="btn secondary">Back to Home</button>
             </div>
         </div>
     </div>
