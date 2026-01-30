@@ -40,13 +40,13 @@ use tokio::sync::oneshot::channel;
 
 use crate::cmd::drill::cache::Cache;
 use crate::cmd::drill::get::get_handler;
-use crate::cmd::drill::katex::KATEX_AUTO_RENDER_JS_URL;
 use crate::cmd::drill::katex::KATEX_CSS_URL;
 use crate::cmd::drill::katex::KATEX_JS_URL;
-use crate::cmd::drill::katex::katex_auto_render_handler;
+use crate::cmd::drill::katex::KATEX_MHCHEM_JS_URL;
 use crate::cmd::drill::katex::katex_css_handler;
 use crate::cmd::drill::katex::katex_font_handler;
 use crate::cmd::drill::katex::katex_js_handler;
+use crate::cmd::drill::katex::katex_mhchem_js_handler;
 use crate::cmd::drill::post::post_handler;
 use crate::cmd::drill::state::MutableState;
 use crate::cmd::drill::state::ServerState;
@@ -82,6 +82,7 @@ impl Display for AnswerControls {
 
 pub struct ServerConfig {
     pub directory: Option<String>,
+    pub host: String,
     pub port: u16,
     pub session_started_at: Timestamp,
     pub card_limit: Option<usize>,
@@ -183,12 +184,12 @@ pub async fn start_server(config: ServerConfig) -> Fallible<()> {
     let app = app.route("/style.css", get(style_handler));
     let app = app.route(KATEX_CSS_URL, get(katex_css_handler));
     let app = app.route(KATEX_JS_URL, get(katex_js_handler));
-    let app = app.route(KATEX_AUTO_RENDER_JS_URL, get(katex_auto_render_handler));
+    let app = app.route(KATEX_MHCHEM_JS_URL, get(katex_mhchem_js_handler));
     let app = app.route("/katex/fonts/{*path}", get(katex_font_handler));
     let app = app.route("/file/{*path}", get(file_handler));
     let app = app.fallback(not_found_handler);
     let app = app.with_state(state.clone());
-    let bind = format!("127.0.0.1:{}", config.port);
+    let bind = format!("{}:{}", config.host, config.port);
 
     // Start the server with graceful shutdown on Ctrl+C or shutdown button.
     log::debug!("Starting server on {bind}");
@@ -216,9 +217,7 @@ async fn script_handler(
     for (name, definition) in &state.macros {
         let name = escape_js_string_literal(name);
         let definition = escape_js_string_literal(definition);
-        content.push_str(&format!(
-            "MACROS[String.raw`{name}`] = String.raw`{definition}`;\n"
-        ));
+        content.push_str(&format!("MACROS['{name}'] = '{definition}';\n"));
     }
     content.push('\n');
     content.push_str(include_str!("script.js"));

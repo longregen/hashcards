@@ -244,6 +244,24 @@ desire: this is also vanity and vexation of spirit.
 — [Ecclesiastes] [6]:[9]
 ```
 
+### Separators
+
+Optionally, cards can be separated by horizontal rules, like so:
+
+```
+C: A semigroup with an identity element is called a [monoid].
+
+---
+
+C: A semigroup without associativity is called a [magma].
+
+---
+
+C: A magma where the operation is [associative] is called a [semigroup].
+```
+
+This can help visually separate the cards better.
+
 ## Features
 
 This section documents specific hashcards features.
@@ -353,6 +371,14 @@ Principles of Neural Science/
 But you don't want the cards in those Markdown files to have `Ch1`, `Ch2`, etc.
 as their deck name. TOML frontmatter allows you to give each chapter deck the same
 deck name.
+
+### Sibling Burial
+
+A single cloze card in the Markdown text with _n_ cloze deletions corresponds to _n_ distinct cloze cards in the database, one per deletion. These cards are called "siblings". 
+
+Hashcards supports "sibling burial": by default, within a session, only one sibling in a particular sibling group will be shown. This is to prevent the text of one card spoiling the answer of another card. The idea is you might do multiple sessions in a single day, and each session shows a different sibling, until you run out of siblings for all cards due today.
+
+You can turn this off by passing `--bury-siblings=false` to the `drill` command.
 
 ## Database
 

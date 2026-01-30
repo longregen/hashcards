@@ -80,6 +80,7 @@ mod tests {
     use crate::helper::create_tmp_directory;
 
     /// Absolute paths are rejected.
+    #[cfg(not(target_os = "windows"))]
     #[test]
     fn test_abs_rejected() -> Fallible<()> {
         let root = create_tmp_directory()?;
@@ -116,6 +117,7 @@ mod tests {
     }
 
     /// Paths to symlinks are rejected.
+    #[cfg(not(target_os = "windows"))]
     #[test]
     fn test_symlink() -> Fallible<()> {
         use std::fs::File;

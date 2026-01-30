@@ -166,8 +166,8 @@ impl Display for ParserError {
 impl Error for ParserError {}
 
 enum State {
-    /// Initial state.
-    Initial,
+    /// Start state.
+    Start,
     /// Reading a question (Q:)
     ReadingQuestion { question: String, start_line: usize },
     /// Reading an answer (A:)
@@ -178,6 +178,8 @@ enum State {
     },
     /// Reading a cloze card (C:)
     ReadingCloze { text: String, start_line: usize },
+    /// End state.
+    End,
 }
 
 enum Line {
@@ -191,6 +193,8 @@ enum Line {
     Separator,
     /// Any other line.
     Text(String),
+    /// End of file
+    Eof,
 }
 
 impl Line {
@@ -240,14 +244,14 @@ impl Parser {
     /// Parse all the cards in the given text.
     pub fn parse(&self, text: &str) -> Result<Vec<Card>, ParserError> {
         let mut cards = Vec::new();
-        let mut state = State::Initial;
+        let mut state = State::Start;
         let lines: Vec<&str> = text.lines().collect();
         let last_line = if lines.is_empty() { 0 } else { lines.len() - 1 };
         for (line_num, line) in lines.iter().enumerate() {
             let line = Line::read(line);
             state = self.parse_line(state, line, line_num, &mut cards)?;
         }
-        self.finalize(state, last_line, &mut cards)?;
+        self.parse_line(state, Line::Eof, last_line, &mut cards)?;
 
         let mut seen = HashSet::new();
         let mut unique_cards = Vec::new();
@@ -267,7 +271,7 @@ impl Parser {
         cards: &mut Vec<Card>,
     ) -> Result<State, ParserError> {
         match state {
-            State::Initial => match line {
+            State::Start => match line {
                 Line::StartQuestion(text) => Ok(State::ReadingQuestion {
                     question: text,
                     start_line: line_num,
@@ -281,8 +285,9 @@ impl Parser {
                     text,
                     start_line: line_num,
                 }),
-                Line::Separator => Ok(State::Initial),
-                Line::Text(_) => Ok(State::Initial),
+                Line::Separator => Ok(State::Start),
+                Line::Text(_) => Ok(State::Start),
+                Line::Eof => Ok(State::End),
             },
             State::ReadingQuestion {
                 question,
@@ -312,6 +317,11 @@ impl Parser {
                     question: format!("{question}\n{text}"),
                     start_line,
                 }),
+                Line::Eof => Err(ParserError::new(
+                    "File ended while reading a question without an answer.",
+                    self.file_path.clone(),
+                    line_num,
+                )),
             },
             State::ReadingAnswer {
                 question,
@@ -363,14 +373,25 @@ impl Parser {
                             CardContent::new_basic(question, answer),
                         );
                         cards.push(card);
-                        // Return to initial state.
-                        Ok(State::Initial)
+                        // Return to start state.
+                        Ok(State::Start)
                     }
                     Line::Text(text) => Ok(State::ReadingAnswer {
                         question,
                         answer: format!("{answer}\n{text}"),
                         start_line,
                     }),
+                    Line::Eof => {
+                        // Finalize the current card.
+                        let card = Card::new(
+                            self.deck_name.clone(),
+                            self.file_path.clone(),
+                            (start_line, line_num),
+                            CardContent::new_basic(question, answer),
+                        );
+                        cards.push(card);
+                        Ok(State::End)
+                    }
                 }
             }
             State::ReadingCloze { text, start_line } => {
@@ -401,51 +422,21 @@ impl Parser {
                     Line::Separator => {
                         // Finalize the current cloze card.
                         cards.extend(self.parse_cloze_cards(text, start_line, line_num)?);
-                        // Return to initial state.
-                        Ok(State::Initial)
+                        // Return to start state.
+                        Ok(State::Start)
                     }
                     Line::Text(new_text) => Ok(State::ReadingCloze {
                         text: format!("{text}\n{new_text}"),
                         start_line,
                     }),
+                    Line::Eof => {
+                        // Finalize the current cloze card.
+                        cards.extend(self.parse_cloze_cards(text, start_line, line_num)?);
+                        Ok(State::End)
+                    }
                 }
             }
-        }
-    }
-
-    fn finalize(
-        &self,
-        state: State,
-        last_line: usize,
-        cards: &mut Vec<Card>,
-    ) -> Result<(), ParserError> {
-        match state {
-            State::Initial => Ok(()),
-            State::ReadingQuestion { .. } => Err(ParserError::new(
-                "File ended while reading a question without answer.",
-                self.file_path.clone(),
-                last_line,
-            )),
-            State::ReadingAnswer {
-                question,
-                answer,
-                start_line,
-            } => {
-                // Finalize the last card.
-                let card = Card::new(
-                    self.deck_name.clone(),
-                    self.file_path.clone(),
-                    (start_line, last_line),
-                    CardContent::new_basic(question, answer),
-                );
-                cards.push(card);
-                Ok(())
-            }
-            State::ReadingCloze { text, start_line } => {
-                // Finalize the last cloze card.
-                cards.extend(self.parse_cloze_cards(text, start_line, last_line)?);
-                Ok(())
-            }
+            State::End => unreachable!("Parsed a line after the end of the file."),
         }
     }
 
@@ -461,7 +452,11 @@ impl Parser {
         // The full text of the card, without cloze deletion brackets.
         let clean_text: String = {
             let mut clean_text: Vec<u8> = Vec::new();
-            let mut image_mode = false;
+            // Flags to indicate should treat the next `[` or `]` differently.
+            // Set when the preceeding byte indicates it should be evaluated as
+            // markdown and not part of the cloze and therefore added to clean_text.
+            let mut image_mode = false; // ![
+            let mut escape_mode = false; // \[ and \]
             // We use `bytes` rather than `chars` because the cloze start/end
             // positions are byte positions, not character positions. This
             // keeps things tractable: bytes are well-understood, "characters"
@@ -471,11 +466,20 @@ impl Parser {
                     if image_mode {
                         clean_text.push(c);
                     }
+                    if escape_mode {
+                        escape_mode = false;
+                        clean_text.push(c);
+                    }
                 } else if c == b']' {
                     if image_mode {
                         // We are in image mode, so this closing bracket is
                         // part of a Markdown image.
                         image_mode = false;
+                        clean_text.push(c);
+                    } else if escape_mode {
+                        // We are in escape mode, so this closing bracket is
+                        // part of the markdown text.
+                        escape_mode = false;
                         clean_text.push(c);
                     }
                 } else if c == b'!' {
@@ -492,6 +496,21 @@ impl Parser {
                         }
                     }
                     clean_text.push(c);
+                } else if c == b'\\' {
+                    if !escape_mode {
+                        // escape_mode must be turned on *only* if the '\' is
+                        // immediately before a `[` or `]`. Otherwise, backslashes
+                        // in other positions would trigger it.
+                        let nextopt = text.as_bytes().get(bytepos + 1).copied();
+                        match nextopt {
+                            Some(b'[') | Some(b']') => {
+                                escape_mode = true;
+                            }
+                            _ => {
+                                clean_text.push(c);
+                            }
+                        }
+                    }
                 } else {
                     clean_text.push(c);
                 }
@@ -511,10 +530,16 @@ impl Parser {
         let mut start = None;
         let mut index = 0;
         let mut image_mode = false;
+        let mut escape_mode = false;
         for (bytepos, c) in text.bytes().enumerate() {
             if c == b'[' {
                 if image_mode {
+                    // We are in image mode, so this closing bracket is part of a markdown image.
                     index += 1;
+                } else if escape_mode {
+                    // We are in escape mode, so this closing bracket is part of a markdown text.
+                    index += 1;
+                    escape_mode = false;
                 } else {
                     start = Some(index);
                 }
@@ -522,6 +547,10 @@ impl Parser {
                 if image_mode {
                     // We are in image mode, so this closing bracket is part of a markdown image.
                     image_mode = false;
+                    index += 1;
+                } else if escape_mode {
+                    // We are in escape mode, so this closing bracket is part of a markdown text.
+                    escape_mode = false;
                     index += 1;
                 } else if let Some(s) = start {
                     let end = index;
@@ -549,6 +578,21 @@ impl Parser {
                     }
                 }
                 index += 1;
+            } else if c == b'\\' {
+                if !escape_mode {
+                    // escape_mode must be turned on *only* if the '\' is
+                    // immediately before a `[` or `]`. Otherwise, backslashes
+                    // in other positions would trigger it.
+                    let nextopt = text.as_bytes().get(bytepos + 1).copied();
+                    match nextopt {
+                        Some(b'[') | Some(b']') => {
+                            escape_mode = true;
+                        }
+                        _ => {
+                            index += 1;
+                        }
+                    }
+                }
             } else {
                 index += 1;
             }
@@ -694,6 +738,26 @@ mod tests {
         let cards = parser.parse(input)?;
 
         assert_cloze(&cards, "Foo bar ![](image.jpg) quux.", &[(4, 6), (23, 26)]);
+        Ok(())
+    }
+
+    #[test]
+    fn test_cloze_with_escaped_square_bracket() -> Result<(), ParserError> {
+        let input = "C: Key: [`\\[`]";
+        let parser = make_test_parser();
+        let cards = parser.parse(input)?;
+
+        assert_cloze(&cards, "Key: `[`", &[(5, 7)]);
+        Ok(())
+    }
+
+    #[test]
+    fn test_cloze_with_multiple_escaped_square_brackets() -> Result<(), ParserError> {
+        let input = "C: \\[markdown\\] [`\\[cloze\\]`]";
+        let parser = make_test_parser();
+        let cards = parser.parse(input)?;
+
+        assert_cloze(&cards, "[markdown] `[cloze]`", &[(11, 19)]);
         Ok(())
     }
 
@@ -900,6 +964,23 @@ mod tests {
         match &card.content() {
             CardContent::Cloze { text, .. } => {
                 assert_eq!(text, "The notation $n!$ means 'n factorial'.");
+            }
+            _ => panic!("Expected cloze card."),
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_cloze_deletion_with_math() -> Result<(), ParserError> {
+        let input = "C: The string `\\alpha` renders as [$\\alpha$].";
+        let parser = make_test_parser();
+        let result = parser.parse(input);
+        let cards = result.unwrap();
+        assert_eq!(cards.len(), 1);
+        let card: Card = cards[0].clone();
+        match &card.content() {
+            CardContent::Cloze { text, .. } => {
+                assert_eq!(text, "The string `\\alpha` renders as $\\alpha$.");
             }
             _ => panic!("Expected cloze card."),
         }

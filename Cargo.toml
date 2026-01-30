@@ -3,30 +3,41 @@ members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
-version = "0.2.1"
+name = "hashcards"
+version = "0.3.0"
 edition = "2024"
 license = "Apache-2.0"
 repository = "https://github.com/eudoxia0/hashcards"
 
 [workspace.dependencies]
-# Core dependencies (WASM-compatible)
 blake3 = "1.8.2"
 chrono = { version = "0.4.42", default-features = false }
 pulldown-cmark = "0.13.0"
 serde = { version = "1.0.224", features = ["derive"] }
 serde_json = "1.0.145"
 toml = "0.9.8"
-
-# CLI-only dependencies
 axum = "0.8.4"
 clap = { version = "4.5.53", features = ["derive"] }
+axum = "0.8.8"
+blake3 = "1.8.3"
+chrono = "0.4.43"
+clap = { version = "4.5.54", features = ["derive"] }
 env_logger = "0.11.8"
-log = "0.4.28"
+log = "0.4.29"
 maud = "0.27.0"
 open = "5.3.2"
 rusqlite = { version = "0.38.0", features = ["bundled"] }
 tokio = { version = "1.48.0", features = ["rt-multi-thread", "fs", "signal"] }
 walkdir = "2"
+open = "5.3.3"
+percent-encoding = "2.3.2"
+pulldown-cmark = "0.13.0"
+rusqlite = { version = "0.38.0", features = ["bundled"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+tokio = { version = "1.49.0", features = ["rt-multi-thread", "fs", "signal"] }
+toml = "0.9.8"
+walkdir = "2.5.0"
 
 # WASM dependencies
 wasm-bindgen = "0.2"
@@ -38,8 +49,8 @@ getrandom = { version = "0.2", features = ["js"] }
 
 # Dev dependencies
 portpicker = "0.1.1"
-reqwest = "0.12.25"
-tempfile = "3.23.0"
+reqwest = { version = "0.13.1", features = ["form"] }
+tempfile = "3.24.0"
 
 [profile.release]
 strip = "symbols"
