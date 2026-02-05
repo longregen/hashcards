@@ -132,13 +132,26 @@ test.describe("Hashcards Walkthrough", () => {
     const theme = testInfo.project.name;
 
     // ================================================================
+    // Scene 0: Start screen
+    // ================================================================
+    console.log(`\n📽️  [${theme}] Scene 0: Start Screen\n`);
+
+    await page.goto(baseUrl);
+    await page.waitForSelector(".start-screen");
+    await pause(800);
+    await capture(page, "start-screen");
+
+    // Click Start to begin the drill session
+    await page.click("input#start");
+    await page.waitForSelector(".card-content");
+    await pause(400);
+
+    // ================================================================
     // Scene 1: First card — question side
     // ================================================================
     console.log(`\n📽️  [${theme}] Scene 1: First Card — Question\n`);
 
-    await page.goto(baseUrl);
-    await page.waitForSelector(".card-content");
-    await pause(800);
+    await pause(400);
     await capture(page, "first-card-question");
 
     // ================================================================

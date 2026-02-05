@@ -5,6 +5,7 @@
 //! It does not persist any data to a database — it's purely for
 //! generating walkthrough screenshots.
 
+use std::collections::HashSet;
 use std::env;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
@@ -27,6 +28,7 @@ use tokio::net::TcpListener;
 struct AppState {
     mutable: Arc<Mutex<DrillState>>,
     total_cards: usize,
+    deck_count: usize,
 }
 
 struct DrillState {
@@ -34,13 +36,16 @@ struct DrillState {
     reveal: bool,
     reviews: Vec<String>,
     finished: bool,
+    started: bool,
 }
 
 // ── Handlers ───────────────────────────────────────────────────
 
 async fn get_handler(State(state): State<AppState>) -> (StatusCode, Html<String>) {
     let m = state.mutable.lock().unwrap();
-    let body = if m.finished {
+    let body = if !m.started {
+        render_start(&state)
+    } else if m.finished {
         render_completion(&state, &m)
     } else {
         render_session(&state, &m)
@@ -55,6 +60,9 @@ async fn post_handler(
     {
         let mut m = state.mutable.lock().unwrap();
         match form.action.as_str() {
+            "Start" => {
+                m.started = true;
+            }
             "Reveal" => {
                 m.reveal = true;
             }
@@ -97,8 +105,23 @@ struct ActionForm {
 
 // ── Rendering ──────────────────────────────────────────────────
 
+fn render_start(state: &AppState) -> Markup {
+    html! {
+        div.start-screen {
+            h1 { "hashcards" }
+            p.subtitle {
+                (state.total_cards) " cards in " (state.deck_count)
+                @if state.deck_count == 1 { " deck" } @else { " decks" }
+            }
+            form action="/" method="post" {
+                input #start .start-button type="submit" name="action" value="Start";
+            }
+        }
+    }
+}
+
 fn render_session(state: &AppState, m: &DrillState) -> Markup {
-    let undo_disabled = m.reviews.is_empty();
+    let has_undo = !m.reviews.is_empty();
     let cards_done = state.total_cards - m.cards.len();
     let percent = if state.total_cards == 0 {
         100
@@ -111,42 +134,36 @@ fn render_session(state: &AppState, m: &DrillState) -> Markup {
     let controls = if m.reveal {
         html! {
             form action="/" method="post" {
-                @if undo_disabled {
-                    input id="undo" type="submit" name="action" value="Undo" disabled;
-                } @else {
-                    input id="undo" type="submit" name="action" value="Undo" title="Undo last action. Shortcut: u.";
-                }
-                div.spacer {}
                 div.grades {
                     input id="forgot" type="submit" name="action" value="Forgot" title="Mark card as forgotten. Shortcut: 1.";
                     input id="hard" type="submit" name="action" value="Hard" title="Mark card as difficult. Shortcut: 2.";
                     input id="good" type="submit" name="action" value="Good" title="Mark card as remembered well. Shortcut: 3.";
                     input id="easy" type="submit" name="action" value="Easy" title="Mark card as very easy. Shortcut: 4.";
                 }
-                div.spacer {}
-                input id="end" type="submit" name="action" value="End" title="End the session (changes are saved)";
             }
         }
     } else {
         html! {
             form action="/" method="post" {
-                @if undo_disabled {
-                    input id="undo" type="submit" name="action" value="Undo" disabled;
-                } @else {
-                    input id="undo" type="submit" name="action" value="Undo" title="Undo last action. Shortcut: u.";
-                }
-                div.spacer {}
                 input id="reveal" type="submit" name="action" value="Reveal" title="Show the answer. Shortcut: space.";
-                div.spacer {}
-                input id="end" type="submit" name="action" value="End" title="End the session (changes are saved)";
             }
         }
     };
     html! {
         div.root {
             div.header {
+                @if has_undo {
+                    form.header-action action="/" method="post" {
+                        input id="undo" type="submit" name="action" value="Undo" title="Undo last action. Shortcut: u.";
+                    }
+                } @else {
+                    div.header-placeholder {}
+                }
                 div.progress-bar {
                     div.progress-fill style=(progress_style) {}
+                }
+                form.header-action action="/" method="post" {
+                    input id="end" type="submit" name="action" value="End" title="End the session";
                 }
             }
             div.card-container {
@@ -341,15 +358,24 @@ async fn main() {
     }
 
     let total = all_cards.len();
-    eprintln!("Loaded {} cards from {}", total, collection_dir.display());
+    let deck_count = {
+        let mut names: HashSet<&str> = HashSet::new();
+        for card in &all_cards {
+            names.insert(card.deck_name());
+        }
+        names.len()
+    };
+    eprintln!("Loaded {} cards from {} decks in {}", total, deck_count, collection_dir.display());
 
     let state = AppState {
         total_cards: total,
+        deck_count,
         mutable: Arc::new(Mutex::new(DrillState {
             cards: all_cards,
             reveal: false,
             reviews: Vec::new(),
             finished: false,
+            started: false,
         })),
     };
 

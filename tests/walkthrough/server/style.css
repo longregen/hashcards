@@ -68,6 +68,53 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Start screen ─────────────────────────────────────────── */
+
+.start-screen {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: var(--bg);
+    color: var(--fg);
+}
+
+.start-screen h1 {
+    font-size: 72px;
+    font-style: italic;
+    letter-spacing: 0.03em;
+    margin-bottom: 16px;
+}
+
+.start-screen .subtitle {
+    font-size: 24px;
+    color: var(--fg-muted);
+    margin-bottom: 48px;
+    letter-spacing: 0.02em;
+}
+
+.start-screen .start-button {
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--shutdown-bg);
+    color: var(--shutdown-fg);
+    border: 2px solid var(--shutdown-bg);
+    padding: 18px 64px;
+    font-size: 28px;
+    font-family: "EB Garamond", "Garamond", "Georgia", serif;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    border-radius: 0;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.start-screen .start-button:hover {
+    opacity: 0.8;
+}
+
 /* ── Session layout ────────────────────────────────────────── */
 
 .root {
@@ -76,16 +123,41 @@ body {
 }
 
 .root .header {
-    padding: 36px 32px;
+    padding: 20px 32px;
     background: var(--bg-surface);
     border-bottom: 2px solid var(--border);
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
+    gap: 16px;
+}
+
+.root .header .header-action input {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--fg-muted);
+    font-size: 16px;
+    font-family: "EB Garamond", "Garamond", "Georgia", serif;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    padding: 6px 16px;
+    border-radius: 4px;
+    transition: opacity 0.15s;
+}
+
+.root .header .header-action input:hover {
+    opacity: 0.7;
+}
+
+.root .header .header-placeholder {
+    width: 72px;
 }
 
 .root .header .progress-bar {
-    width: 320px;
+    flex: 1;
+    max-width: 320px;
     height: 10px;
     border: 2px solid var(--border);
     border-radius: 5px;
@@ -255,10 +327,14 @@ body {
 
 .root .controls form {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
 }
 
-.root .controls form .spacer { flex: 1; }
+.root .controls form .grades {
+    display: flex;
+    gap: 12px;
+}
 
 .root .controls form input {
     -webkit-appearance: none;
@@ -277,12 +353,7 @@ body {
     transition: opacity 0.15s;
 }
 
-.root .controls form input:disabled {
-    cursor: not-allowed;
-    opacity: 0.35;
-}
-
-.root .controls form input:hover:not(:disabled) {
+.root .controls form input:hover {
     opacity: 0.75;
 }
 
@@ -365,6 +436,9 @@ body {
 /* ── Responsive ────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
+    .start-screen h1 { font-size: 48px; }
+    .start-screen .subtitle { font-size: 20px; margin-bottom: 36px; }
+    .start-screen .start-button { padding: 14px 48px; font-size: 24px; }
     .root .card-container .card { width: 100%; height: 100%; box-shadow: none !important; border-left: none; border-right: none; }
     .root .card-container .card .card-header { padding: 20px 24px; }
     .root .card-container .card .card-header h1 { font-size: 32px; }
@@ -372,12 +446,12 @@ body {
     .root .card-container .card .card-content .answer,
     .root .card-container .card .card-content .prompt { padding: 20px 24px; }
     .rich-text { font-size: 24px; }
-    .root .header { padding: 24px 20px; }
+    .root .header { padding: 14px 16px; gap: 10px; }
+    .root .header .header-action input { font-size: 14px; padding: 5px 12px; }
+    .root .header .header-placeholder { width: 56px; }
     .root .controls { padding: 16px 20px; }
-    .root .controls form { flex-direction: row; align-items: center; }
-    .root .controls form input { margin: 0 6px; padding: 12px 16px; font-size: 18px; }
-    .root .controls form .spacer { flex: 1; }
-    .root .controls form .grades { display: flex; flex-direction: row; gap: 6px; }
+    .root .controls form input { padding: 12px 16px; font-size: 18px; }
+    .root .controls form .grades { gap: 6px; }
     .finished { padding: 32px 24px; }
     .finished h1 { font-size: 36px; margin-bottom: 32px; }
     .finished h2 { font-size: 28px; margin-bottom: 16px; }
@@ -390,8 +464,6 @@ body {
 @media (min-width: 769px) {
     .card { width: 920px; min-height: 420px; max-height: 90%; }
     .controls { padding: 32px; }
-    .controls form { flex-direction: row; }
-    .controls form input { margin: 0 12px; }
     .finished { padding: 56px 80px; }
     .finished h1 { margin-bottom: 48px; }
     .finished h2 { margin-bottom: 28px; }
