@@ -113,34 +113,32 @@ fn render_session(state: &AppState, m: &DrillState) -> Markup {
     let card_controls = if m.reveal {
         html! {
             form action="/" method="post" {
-                (undo_button(undo_disabled))
-                div.spacer {}
                 div.grades {
                     input id="forgot" type="submit" name="action" value="Forgot" title="Mark card as forgotten. Shortcut: 1.";
                     input id="hard" type="submit" name="action" value="Hard" title="Mark card as difficult. Shortcut: 2.";
                     input id="good" type="submit" name="action" value="Good" title="Mark card as remembered well. Shortcut: 3.";
                     input id="easy" type="submit" name="action" value="Easy" title="Mark card as very easy. Shortcut: 4.";
                 }
-                div.spacer {}
-                (end_button())
             }
         }
     } else {
         html! {
             form action="/" method="post" {
-                (undo_button(undo_disabled))
-                div.spacer {}
                 input id="reveal" type="submit" name="action" value="Reveal" title="Show the answer. Shortcut: space.";
-                div.spacer {}
-                (end_button())
             }
         }
     };
     html! {
         div.root {
             div.header {
+                form.header-action action="/" method="post" {
+                    (undo_button(undo_disabled))
+                }
                 div.progress-bar {
                     div.progress-fill style=(progress_style) {}
+                }
+                form.header-action action="/" method="post" {
+                    (end_button())
                 }
             }
             div.card-container {
