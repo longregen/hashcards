@@ -236,9 +236,9 @@ fn render_completion_page(state: &ServerState, mutable: &MutableState) -> Fallib
                     }
                 }
             }
-            div.shutdown-container {
+            div.finish-container {
                 form action="/" method="post" {
-                    input #shutdown .shutdown-button type="submit" name="action" value="Shutdown" title="Shut down the server";
+                    input #finish .finish-button type="submit" name="action" value="Finish";
                 }
             }
         }

@@ -315,9 +315,9 @@ test.describe("Hashcards Walkthrough", () => {
     expect(completionText).toContain("Cards Reviewed");
     expect(completionText).toContain("Pace");
 
-    // Verify shutdown button is present
-    const shutdownBtn = await page.$("input#shutdown");
-    expect(shutdownBtn).toBeTruthy();
+    // Verify finish button is present
+    const finishBtn = await page.$("input#finish");
+    expect(finishBtn).toBeTruthy();
 
     console.log(
       `\n🎬 [${theme}] Walkthrough captured ${counter} screenshots.`

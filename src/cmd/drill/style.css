@@ -36,10 +36,6 @@
     --table-header-bg: #e8e8e8;
     --table-odd-bg: #ffffff;
     --table-even-bg: #f5f5f5;
-    --shutdown-bg: #dc3545;
-    --shutdown-border: #c82333;
-    --shutdown-hover: #c82333;
-    --shutdown-active: #bd2130;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -65,10 +61,6 @@
         --table-header-bg: #333333;
         --table-odd-bg: #242424;
         --table-even-bg: #2a2a2a;
-        --shutdown-bg: #c82333;
-        --shutdown-border: #a71d2a;
-        --shutdown-hover: #a71d2a;
-        --shutdown-active: #8b1622;
     }
 }
 
@@ -349,20 +341,25 @@ body {
 /* ── Completion Page ───────────────────────────────────────── */
 
 .finished {
-    background: var(--bg);
+    background: var(--bg-card);
     color: var(--fg);
 
     h1 {
         text-align: center;
+        font-family: "TeX Gyre Termes", "Times New Roman", serif;
+        font-style: italic;
+        font-weight: normal;
     }
 
     .summary {
-        font-size: 24px;
-        margin-bottom: 48px;
+        font-size: 20px;
     }
 
     h2 {
-        border-bottom: 1px solid var(--border-lighter);
+        font-family: "TeX Gyre Termes", "Times New Roman", serif;
+        font-weight: normal;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
     }
 
     .stats {
@@ -374,28 +371,27 @@ body {
                 border-bottom: 1px solid var(--border-lighter);
 
                 td {
-                    padding-top: 12px;
-                    padding-bottom: 12px;
+                    padding-top: 16px;
+                    padding-bottom: 16px;
+                    font-size: inherit;
 
                     &.key {
-                        font-family: "SF Pro", system-ui, sans-serif;
-                        font-weight: 500;
+                        font-weight: normal;
                         width: auto;
                         white-space: nowrap;
                     }
 
                     &.val {
-                        font-family: "SF Pro", system-ui, sans-serif;
                         font-feature-settings: "tnum";
                         font-variant-numeric: tabular-nums;
-                        width: 100%;
+                        text-align: right;
                     }
                 }
             }
         }
     }
 
-    .shutdown-container {
+    .finish-container {
         margin-top: 48px;
         text-align: center;
 
@@ -403,33 +399,24 @@ body {
             display: inline-block;
         }
 
-        .shutdown-button {
-            background: var(--shutdown-bg);
-            color: white;
-            border: 1px solid var(--shutdown-border);
-            padding: 12px 24px;
+        .finish-button {
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--fg);
+            color: var(--bg-card);
+            border: none;
+            padding: 14px 32px;
             font-size: 18px;
-            font-family:
-                system-ui,
-                -apple-system,
-                "Helvetica Neue",
-                sans-serif;
-            font-weight: 600;
-            border-radius: 6px;
+            font-family: "TeX Gyre Termes", "Times New Roman", serif;
+            border-radius: 0;
             cursor: pointer;
-            box-shadow: rgba(220, 53, 69, 0.3) 0px 2px 8px 0px;
-            transition:
-                background-color 0.2s,
-                box-shadow 0.2s;
 
             &:hover {
-                background: var(--shutdown-hover);
-                box-shadow: rgba(220, 53, 69, 0.5) 0px 4px 12px 0px;
+                opacity: 0.85;
             }
 
             &:active {
-                background: var(--shutdown-active);
-                box-shadow: rgba(220, 53, 69, 0.2) 0px 1px 4px 0px;
+                opacity: 0.7;
             }
         }
     }
@@ -484,13 +471,15 @@ body {
         form {
             .grades {
                 display: flex;
-                flex-wrap: wrap;
                 gap: 8px;
                 justify-content: center;
+                width: 100%;
 
                 input {
-                    flex: 1;
-                    min-width: 70px;
+                    flex: 1 1 0;
+                    min-width: 0;
+                    padding: 14px 8px;
+                    font-size: 14px;
                 }
             }
 
