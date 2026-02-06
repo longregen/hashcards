@@ -1,13 +1,14 @@
 /**
  * E2E Walkthrough Test for Video Generation
  *
- * Walks through an entire hashcards drill session, capturing numbered
- * screenshots at each stage. Runs in both light and dark color schemes
- * (via Playwright projects). Screenshots go into separate subdirectories
- * and can be assembled into video walkthroughs.
+ * Walks through an entire hashcards drill session using the REAL
+ * hashcards binary, capturing numbered screenshots at each stage.
+ * Runs in both light and dark color schemes (via Playwright projects).
+ * Screenshots go into separate subdirectories and can be assembled
+ * into video walkthroughs.
  *
  * Prerequisites:
- *   cargo build --manifest-path tests/walkthrough/server/Cargo.toml
+ *   cargo build (builds the hashcards binary)
  *
  * Usage:
  *   cd tests/walkthrough
@@ -26,16 +27,12 @@ import { test, expect, Page } from "@playwright/test";
 import { execSync, ChildProcess, spawn } from "child_process";
 import path from "path";
 import fs from "fs";
+import os from "os";
 
+const ROOT_DIR = path.join(__dirname, "../..");
 const COLLECTION_DIR = path.join(__dirname, "collection");
 const SCREENSHOTS_BASE = path.join(__dirname, "screenshots");
-const SERVER_DIR = path.join(__dirname, "server");
-const SERVER_BIN = path.join(
-  SERVER_DIR,
-  "target",
-  "debug",
-  "walkthrough-server"
-);
+const HASHCARDS_BIN = path.join(ROOT_DIR, "target", "debug", "hashcards");
 
 /** Short pause for visual timing between actions. */
 async function pause(ms = 400): Promise<void> {
@@ -63,6 +60,7 @@ test.describe("Hashcards Walkthrough", () => {
   let baseUrl: string;
   let counter: number;
   let screenshotsDir: string;
+  let tempCollectionDir: string;
 
   /** Capture a numbered screenshot. */
   async function capture(page: Page, name: string): Promise<void> {
@@ -76,7 +74,7 @@ test.describe("Hashcards Walkthrough", () => {
   }
 
   test.beforeAll(async ({}, testInfo) => {
-    const theme = testInfo.project.name; // "light" or "dark"
+    const theme = testInfo.project.name; // "light", "dark", etc.
     screenshotsDir = path.join(SCREENSHOTS_BASE, theme);
     counter = 0;
 
@@ -85,18 +83,38 @@ test.describe("Hashcards Walkthrough", () => {
     }
     fs.mkdirSync(screenshotsDir, { recursive: true });
 
-    // Build the walkthrough server (only once, cargo handles caching)
-    console.log(`[${theme}] Building walkthrough server...`);
-    execSync("cargo build", { cwd: SERVER_DIR, stdio: "inherit" });
+    // Build the hashcards binary
+    console.log(`[${theme}] Building hashcards...`);
+    execSync("cargo build", { cwd: ROOT_DIR, stdio: "inherit" });
 
-    // Each project gets its own server instance (session state is consumed)
+    // Copy collection to temp dir (real server creates DB files)
+    tempCollectionDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), "hashcards-walkthrough-")
+    );
+    fs.cpSync(COLLECTION_DIR, tempCollectionDir, { recursive: true });
+    console.log(`[${theme}] Using temp collection: ${tempCollectionDir}`);
+
+    // Start the real hashcards server
     port = 18900 + Math.floor(Math.random() * 1000);
     baseUrl = `http://127.0.0.1:${port}`;
 
-    console.log(`[${theme}] Starting server on port ${port}...`);
-    serverProcess = spawn(SERVER_BIN, [COLLECTION_DIR, String(port)], {
-      stdio: ["ignore", "pipe", "pipe"],
-    });
+    console.log(`[${theme}] Starting hashcards drill on port ${port}...`);
+    serverProcess = spawn(
+      HASHCARDS_BIN,
+      [
+        "drill",
+        tempCollectionDir,
+        "--port",
+        String(port),
+        "--open-browser",
+        "false",
+        "--bury-siblings",
+        "false",
+      ],
+      {
+        stdio: ["ignore", "pipe", "pipe"],
+      }
+    );
 
     serverProcess.stdout?.on("data", (d) =>
       console.log(`[server] ${d.toString().trim()}`)
@@ -122,6 +140,11 @@ test.describe("Hashcards Walkthrough", () => {
       });
     }
 
+    // Clean up temp directory
+    if (tempCollectionDir && fs.existsSync(tempCollectionDir)) {
+      fs.rmSync(tempCollectionDir, { recursive: true });
+    }
+
     console.log(
       `\n✅ [${theme}] Walkthrough complete: ${counter} screenshots`
     );
@@ -132,26 +155,13 @@ test.describe("Hashcards Walkthrough", () => {
     const theme = testInfo.project.name;
 
     // ================================================================
-    // Scene 0: Start screen
-    // ================================================================
-    console.log(`\n📽️  [${theme}] Scene 0: Start Screen\n`);
-
-    await page.goto(baseUrl);
-    await page.waitForSelector(".start-screen");
-    await pause(800);
-    await capture(page, "start-screen");
-
-    // Click Start to begin the drill session
-    await page.click("input#start");
-    await page.waitForSelector(".card-content");
-    await pause(400);
-
-    // ================================================================
     // Scene 1: First card — question side
     // ================================================================
     console.log(`\n📽️  [${theme}] Scene 1: First Card — Question\n`);
 
-    await pause(400);
+    await page.goto(baseUrl);
+    await page.waitForSelector(".card-content");
+    await pause(800);
     await capture(page, "first-card-question");
 
     // ================================================================

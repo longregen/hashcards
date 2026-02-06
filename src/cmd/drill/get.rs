@@ -88,31 +88,29 @@ fn render_session_page(state: &ServerState, mutable: &MutableState) -> Fallible<
         };
         html! {
             form action="/" method="post" {
-                (undo_button(undo_disabled))
-                div.spacer {}
                 div.grades {
                     (grades)
                 }
-                div.spacer {}
-                (end_button())
             }
         }
     } else {
         html! {
             form action="/" method="post" {
-                (undo_button(undo_disabled))
-                div.spacer {}
                 input id="reveal" type="submit" name="action" value="Reveal" title="Show the answer. Shortcut: space.";
-                div.spacer {}
-                (end_button())
             }
         }
     };
     let html = html! {
         div.root {
             div.header {
+                form.header-action action="/" method="post" {
+                    (undo_button(undo_disabled))
+                }
                 div.progress-bar {
                     div.progress-fill style=(progress_bar_style) {}
+                }
+                form.header-action action="/" method="post" {
+                    (end_button())
                 }
             }
             div.card-container {
@@ -238,9 +236,9 @@ fn render_completion_page(state: &ServerState, mutable: &MutableState) -> Fallib
                     }
                 }
             }
-            div.shutdown-container {
+            div.finish-container {
                 form action="/" method="post" {
-                    input #shutdown .shutdown-button type="submit" name="action" value="Shutdown" title="Shut down the server";
+                    input #finish .finish-button type="submit" name="action" value="Finish";
                 }
             }
         }
