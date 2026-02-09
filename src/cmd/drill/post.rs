@@ -39,7 +39,7 @@ enum Action {
     Hard,
     Good,
     Easy,
-    Shutdown,
+    Finish,
 }
 
 impl Action {
@@ -101,8 +101,8 @@ async fn action_handler(state: ServerState, action: Action) -> Fallible<()> {
         Action::End => {
             finish_session(&mut mutable, &state)?;
         }
-        Action::Shutdown => {
-            // Only allow shutdown if session is finished
+        Action::Finish => {
+            // Only allow finish (server shutdown) if session is finished
             if mutable.finished_at.is_some() {
                 // Release the lock before sending shutdown signal.
                 drop(mutable);
